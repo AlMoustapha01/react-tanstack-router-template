@@ -1642,10 +1642,10 @@ export const Route = createFileRoute("/_authenticated")({
 
 - [ ] **Step 5: Créer la page du tableau de bord**
 
-`src/routes/_authenticated/dashboard.tsx` :
+`src/routes/_authenticated/dashboard.tsx`. Pas de lien vers `/posts` ici : cette route n'existe qu'en Task 7, et un lien typé vers elle ne compilerait pas. La Task 7 l'ajoute.
 
 ```tsx
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 
 import { useAuth } from "@/features/auth/use-auth"
 
@@ -1659,13 +1659,6 @@ function DashboardPage() {
         Signed in as {auth.user?.email}. This route is behind the
         <code className="mx-1">_authenticated</code> layout guard.
       </p>
-      <Link
-        to="/posts"
-        search={{ page: 1 }}
-        className="underline underline-offset-4"
-      >
-        Browse posts
-      </Link>
     </div>
   )
 }
@@ -2195,14 +2188,28 @@ export const Route = createFileRoute("/_authenticated/posts/$postId")({
 Run: `bun run routes:generate`
 Expected: `routeTree.gen.ts` référence `/_authenticated/posts/` et `/_authenticated/posts/$postId`
 
-- [ ] **Step 10: Ajouter le lien Posts à la navigation**
+- [ ] **Step 10: Ajouter les liens vers /posts, maintenant que la route existe**
 
-La route existe désormais. Dans `src/routes/__root.tsx`, ajouter à la fin du `<nav>`, après le lien `Dashboard` :
+Deux fichiers ont dû omettre ce lien jusqu'ici, faute de route cible : un `<Link to="/posts">` ne compile pas tant que la route n'est pas dans l'arbre généré.
+
+Dans `src/routes/__root.tsx`, ajouter à la fin du `<nav>`, après le lien `Dashboard` :
 
 ```tsx
           <Link to="/posts" search={{ page: 1 }} className={navLinkClass}>
             Posts
           </Link>
+```
+
+Dans `src/routes/_authenticated/dashboard.tsx`, ajouter `Link` à l'import de `@tanstack/react-router` puis insérer le lien après le paragraphe :
+
+```tsx
+      <Link
+        to="/posts"
+        search={{ page: 1 }}
+        className="underline underline-offset-4"
+      >
+        Browse posts
+      </Link>
 ```
 
 - [ ] **Step 11: Lancer le test et vérifier qu'il passe**
