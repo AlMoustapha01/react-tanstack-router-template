@@ -42,7 +42,16 @@ function LoginPage() {
 
       // Rejoue les `beforeLoad` avec le nouveau contexte d'authentification.
       await router.invalidate()
-      await navigate({ to: search.redirect ?? "/dashboard" })
+
+      // `search.redirect` est une URL complète (pathname + search), pas un
+      // simple pathname : seule l'option `href` la fait passer par l'analyse
+      // d'URL. Utiliser `to` la traiterait comme un pathname littéral et
+      // perdrait ses éventuels search params (ex. `/posts?page=2`).
+      if (search.redirect) {
+        await navigate({ href: search.redirect })
+      } else {
+        await navigate({ to: "/dashboard" })
+      }
     },
   })
 

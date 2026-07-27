@@ -14,6 +14,20 @@ describe("authenticated layout", () => {
     expect(router.state.location.search).toEqual({ redirect: "/dashboard" })
   })
 
+  it("preserves search params in the redirect back URL", async () => {
+    const { router } = renderRoute({
+      initialEntries: ["/dashboard?foo=bar"],
+    })
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe("/login")
+    })
+
+    expect(router.state.location.search).toEqual({
+      redirect: "/dashboard?foo=bar",
+    })
+  })
+
   it("lets a signed-in user reach the dashboard", async () => {
     const { router } = renderRoute({
       initialEntries: ["/dashboard"],

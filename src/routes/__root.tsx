@@ -2,6 +2,7 @@ import {
   createRootRouteWithContext,
   Link,
   Outlet,
+  useRouter,
 } from "@tanstack/react-router"
 import { lazy, Suspense } from "react"
 
@@ -30,6 +31,7 @@ const navLinkClass =
 
 function RootLayout() {
   const auth = useAuth()
+  const router = useRouter()
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -47,7 +49,16 @@ function RootLayout() {
             <span className="text-xs text-muted-foreground">
               {auth.user?.email}
             </span>
-            <Button size="sm" variant="outline" onClick={auth.logout}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                auth.logout()
+                // Rejoue les `beforeLoad` pour que les routes protégées
+                // montées redirigent immédiatement vers /login.
+                void router.invalidate()
+              }}
+            >
               Sign out
             </Button>
           </div>
