@@ -24,7 +24,8 @@ Ces contraintes s'appliquent à **toutes** les tâches.
 - **Langue** : les identifiants et le texte d'interface sont en **anglais**, comme le code existant. Les commentaires explicatifs et les messages de commit sont en **français**.
 - **Les liens sont typés** : `<Link to="/x">` ne compile que si la route `/x` existe déjà dans `routeTree.gen.ts`. C'est pourquoi la navigation du shell est construite par étapes, tâche après tâche, au fur et à mesure que les routes apparaissent. Ne pas anticiper un lien vers une route d'une tâche ultérieure.
 - **Pas de `globals: true` dans Vitest** : importer explicitement `describe`, `it`, `expect`, `vi`, `beforeEach` depuis `"vitest"`. Cela évite de modifier `tsconfig.app.json`.
-- **Commandes de vérification** : `bun run typecheck`, `bun run lint`, `bun test`.
+- **Commandes de vérification** : `bun run typecheck`, `bun run lint`, `bun run test`.
+- **Ne jamais lancer `bun test`** (sans `run`) : cette forme invoque le runner de test natif de Bun, qui ignore `vite.config.ts` — donc ni `environment: "jsdom"` ni `setupFiles`. Tout test touchant au DOM, à React ou à MSW passerait à côté de son environnement. Utiliser `bun run test` pour la suite complète et `bunx vitest run <fichier>` pour un fichier ciblé.
 
 ## File Structure
 
@@ -74,7 +75,7 @@ Fichier **supprimé** : `src/App.tsx` (contenu de démo migré vers `src/routes/
 
 ### Task 1: Socle de test et environnement typé
 
-Installe toutes les dépendances du projet, câble Vitest, et livre le premier module testé (`env`). À la fin de cette tâche, `bun test` fonctionne.
+Installe toutes les dépendances du projet, câble Vitest, et livre le premier module testé (`env`). À la fin de cette tâche, `bun run test` fonctionne.
 
 **Files:**
 - Modify: `package.json` (dépendances + scripts)
@@ -180,7 +181,7 @@ describe("parseEnv", () => {
 
 - [ ] **Step 6: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/lib/env.test.ts`
+Run: `bunx vitest run src/lib/env.test.ts`
 Expected: FAIL — `Failed to resolve import "./env"`
 
 - [ ] **Step 7: Implémenter `src/lib/env.ts`**
@@ -213,7 +214,7 @@ export const env = parseEnv(import.meta.env)
 
 - [ ] **Step 8: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/lib/env.test.ts`
+Run: `bunx vitest run src/lib/env.test.ts`
 Expected: PASS — 3 tests
 
 - [ ] **Step 9: Documenter la variable d'environnement**
@@ -547,7 +548,7 @@ describe("posts api", () => {
 
 - [ ] **Step 6: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/features/posts/api/posts.api.test.ts`
+Run: `bunx vitest run src/features/posts/api/posts.api.test.ts`
 Expected: FAIL — `Failed to resolve import "./posts.api"`
 
 - [ ] **Step 7: Implémenter le client HTTP**
@@ -605,7 +606,7 @@ export async function createPost(input: CreatePostInput): Promise<Post> {
 
 - [ ] **Step 8: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/features/posts/api/posts.api.test.ts`
+Run: `bunx vitest run src/features/posts/api/posts.api.test.ts`
 Expected: PASS — 6 tests
 
 - [ ] **Step 9: Générer le service worker MSW pour le navigateur**
@@ -626,7 +627,7 @@ Et dans `eslint.config.js`, remplacer la ligne `globalIgnores(['dist'])` par :
 
 - [ ] **Step 10: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: tous les tests passent, aucune erreur
 
 - [ ] **Step 11: Commit**
@@ -763,7 +764,7 @@ describe("posts queries", () => {
 
 - [ ] **Step 4: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/features/posts/api/posts.queries.test.tsx`
+Run: `bunx vitest run src/features/posts/api/posts.queries.test.tsx`
 Expected: FAIL — `Failed to resolve import "./posts.queries"`
 
 - [ ] **Step 5: Implémenter les query options**
@@ -799,12 +800,12 @@ export function postQueryOptions(postId: string) {
 
 - [ ] **Step 6: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/features/posts/api/posts.queries.test.tsx`
+Run: `bunx vitest run src/features/posts/api/posts.queries.test.tsx`
 Expected: PASS — 3 tests
 
 - [ ] **Step 7: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 8: Commit**
@@ -942,7 +943,7 @@ Ce dernier test rend volontairement un composant qui lève : React écrit la tra
 
 - [ ] **Step 2: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/features/auth/auth-provider.test.tsx`
+Run: `bunx vitest run src/features/auth/auth-provider.test.tsx`
 Expected: FAIL — `Failed to resolve import "./auth-context"`
 
 - [ ] **Step 3: Créer le contexte et les types**
@@ -1062,12 +1063,12 @@ export function useAuth() {
 
 - [ ] **Step 6: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/features/auth/auth-provider.test.tsx`
+Run: `bunx vitest run src/features/auth/auth-provider.test.tsx`
 Expected: PASS — 7 tests
 
 - [ ] **Step 7: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 8: Commit**
@@ -1517,7 +1518,7 @@ describe("home route", () => {
 
 - [ ] **Step 13: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/routes/index.test.tsx`
+Run: `bunx vitest run src/routes/index.test.tsx`
 Expected: PASS — 2 tests
 
 Si le test échoue sur un import de `routeTree.gen.ts` manquant, relancer `bun run routes:generate`.
@@ -1529,7 +1530,7 @@ Attendu : la page d'accueil s'affiche, le lien `Home` est présent, les deux pan
 
 - [ ] **Step 15: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 16: Commit**
@@ -1612,7 +1613,7 @@ describe("authenticated layout", () => {
 
 - [ ] **Step 3: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/routes/_authenticated.test.tsx`
+Run: `bunx vitest run src/routes/_authenticated.test.tsx`
 Expected: FAIL — les routes `/dashboard` et `/login` n'existent pas
 
 - [ ] **Step 4: Créer le layout protégé**
@@ -1641,10 +1642,10 @@ export const Route = createFileRoute("/_authenticated")({
 
 - [ ] **Step 5: Créer la page du tableau de bord**
 
-`src/routes/_authenticated/dashboard.tsx` :
+`src/routes/_authenticated/dashboard.tsx`. Pas de lien vers `/posts` ici : cette route n'existe qu'en Task 7, et un lien typé vers elle ne compilerait pas. La Task 7 l'ajoute.
 
 ```tsx
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 
 import { useAuth } from "@/features/auth/use-auth"
 
@@ -1658,13 +1659,6 @@ function DashboardPage() {
         Signed in as {auth.user?.email}. This route is behind the
         <code className="mx-1">_authenticated</code> layout guard.
       </p>
-      <Link
-        to="/posts"
-        search={{ page: 1 }}
-        className="underline underline-offset-4"
-      >
-        Browse posts
-      </Link>
     </div>
   )
 }
@@ -1897,12 +1891,12 @@ et le paragraphe d'accueil devient :
     expect(screen.getAllByRole("link", { name: "Sign in" })).toHaveLength(2)
 ```
 
-Run: `bun test src/routes/index.test.tsx`
+Run: `bunx vitest run src/routes/index.test.tsx`
 Expected: PASS — 2 tests
 
 - [ ] **Step 10: Lancer le test de la garde et vérifier qu'il passe**
 
-Run: `bun test src/routes/_authenticated.test.tsx`
+Run: `bunx vitest run src/routes/_authenticated.test.tsx`
 Expected: PASS — 3 tests
 
 Le troisième test (`renders the login form`) trouve deux éléments nommés « Sign in » : le lien de la barre de navigation et le bouton du formulaire. `getByRole("button", { name: "Sign in" })` ne remonte que le bouton — c'est bien ce que le test interroge.
@@ -1914,7 +1908,7 @@ Attendu : `/dashboard` en anonyme redirige vers `/login?redirect=%2Fdashboard` ;
 
 - [ ] **Step 12: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 13: Commit**
@@ -1973,7 +1967,7 @@ describe("PostCard", () => {
 
 - [ ] **Step 2: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/features/posts/components/post-card.test.tsx`
+Run: `bunx vitest run src/features/posts/components/post-card.test.tsx`
 Expected: FAIL — `Failed to resolve import "./post-card"`
 
 - [ ] **Step 3: Implémenter `PostCard`**
@@ -1998,7 +1992,7 @@ export function PostCard({ post }: { post: Post }) {
 
 - [ ] **Step 4: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/features/posts/components/post-card.test.tsx`
+Run: `bunx vitest run src/features/posts/components/post-card.test.tsx`
 Expected: PASS — 1 test
 
 - [ ] **Step 5: Écrire le test des routes posts**
@@ -2034,12 +2028,13 @@ describe("posts routes", () => {
       expect(screen.getByText("Typed routing end to end")).toBeInTheDocument()
     })
 
-    await user.type(screen.getByLabelText("Search posts"), "loaders")
+    await user.type(screen.getByLabelText("Search posts"), "loaders{Enter}")
 
     await waitFor(() => {
       expect(screen.getAllByRole("article")).toHaveLength(1)
     })
 
+    expect(screen.getByText("Loaders meet the query cache")).toBeInTheDocument()
     expect(router.state.location.search).toEqual({ page: 1, q: "loaders" })
   })
 
@@ -2059,16 +2054,29 @@ describe("posts routes", () => {
 
 - [ ] **Step 6: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/routes/_authenticated/posts.test.tsx`
+Run: `bunx vitest run src/routes/_authenticated/posts.test.tsx`
 Expected: FAIL — les routes `/posts` et `/posts/$postId` n'existent pas
 
 - [ ] **Step 7: Créer la route liste**
 
 `src/routes/_authenticated/posts.index.tsx` — `loaderDeps` est obligatoire : sans lui, le loader ne se rejoue pas quand les search params changent.
 
+Le champ de recherche vit sur son propre état et n'écrit dans l'URL qu'à la
+validation (Entrée ou envoi du formulaire).
+
+Naviguer à chaque frappe paraît plus vif, mais c'est une course insoluble :
+`navigate()` est asynchrone, donc l'URL reste en retard sur la saisie, et chaque
+rendu déclenché par la navigation précédente réécrit le champ avec une valeur
+périmée. En frappe rapide, seuls quelques caractères survivent. Ni un `useEffect`
+de resynchronisation, ni l'ajustement pendant le rendu, ni la suppression de toute
+resynchronisation ne corrigent le problème — c'est la navigation par frappe qui est
+en cause. La validation explicite le supprime, et l'URL reste la source de vérité
+des données affichées.
+
 ```tsx
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { useState } from "react"
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -2080,25 +2088,28 @@ function PostsPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
   const { data } = useSuspenseQuery(postsQueryOptions(search))
+  const [query, setQuery] = useState(search.q ?? "")
   const pageCount = Math.max(1, Math.ceil(data.total / data.pageSize))
 
   return (
     <div className="flex max-w-2xl flex-col gap-4 text-sm">
-      <div className="flex flex-col gap-1.5">
+      <form
+        className="flex flex-col gap-1.5"
+        onSubmit={(event) => {
+          event.preventDefault()
+
+          void navigate({
+            search: { page: 1, q: query === "" ? undefined : query },
+          })
+        }}
+      >
         <Label htmlFor="posts-search">Search posts</Label>
         <Input
           id="posts-search"
-          value={search.q ?? ""}
-          onChange={(event) => {
-            const value = event.target.value
-
-            void navigate({
-              search: { page: 1, q: value === "" ? undefined : value },
-              replace: true,
-            })
-          }}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
         />
-      </div>
+      </form>
 
       <div className="flex flex-col gap-3">
         {data.items.map((post) => (
@@ -2194,9 +2205,11 @@ export const Route = createFileRoute("/_authenticated/posts/$postId")({
 Run: `bun run routes:generate`
 Expected: `routeTree.gen.ts` référence `/_authenticated/posts/` et `/_authenticated/posts/$postId`
 
-- [ ] **Step 10: Ajouter le lien Posts à la navigation**
+- [ ] **Step 10: Ajouter les liens vers /posts, maintenant que la route existe**
 
-La route existe désormais. Dans `src/routes/__root.tsx`, ajouter à la fin du `<nav>`, après le lien `Dashboard` :
+Deux fichiers ont dû omettre ce lien jusqu'ici, faute de route cible : un `<Link to="/posts">` ne compile pas tant que la route n'est pas dans l'arbre généré.
+
+Dans `src/routes/__root.tsx`, ajouter à la fin du `<nav>`, après le lien `Dashboard` :
 
 ```tsx
           <Link to="/posts" search={{ page: 1 }} className={navLinkClass}>
@@ -2204,9 +2217,21 @@ La route existe désormais. Dans `src/routes/__root.tsx`, ajouter à la fin du `
           </Link>
 ```
 
+Dans `src/routes/_authenticated/dashboard.tsx`, ajouter `Link` à l'import de `@tanstack/react-router` puis insérer le lien après le paragraphe :
+
+```tsx
+      <Link
+        to="/posts"
+        search={{ page: 1 }}
+        className="underline underline-offset-4"
+      >
+        Browse posts
+      </Link>
+```
+
 - [ ] **Step 11: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/routes/_authenticated/posts.test.tsx`
+Run: `bunx vitest run src/routes/_authenticated/posts.test.tsx`
 Expected: PASS — 3 tests
 
 - [ ] **Step 12: Vérifier dans le navigateur**
@@ -2216,7 +2241,7 @@ Attendu : après connexion, `/posts` liste 3 posts, la recherche met à jour l'U
 
 - [ ] **Step 13: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 14: Commit**
@@ -2290,7 +2315,7 @@ describe("PostForm", () => {
 
 - [ ] **Step 2: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/features/posts/components/post-form.test.tsx`
+Run: `bunx vitest run src/features/posts/components/post-form.test.tsx`
 Expected: FAIL — `Failed to resolve import "./post-form"`
 
 - [ ] **Step 3: Ajouter la mutation**
@@ -2417,7 +2442,7 @@ export function PostForm({ onCreated }: { onCreated?: () => void }) {
 
 - [ ] **Step 5: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/features/posts/components/post-form.test.tsx`
+Run: `bunx vitest run src/features/posts/components/post-form.test.tsx`
 Expected: PASS — 2 tests
 
 - [ ] **Step 6: Monter le formulaire sur la page liste**
@@ -2440,7 +2465,7 @@ et insérer le formulaire juste après le bloc du champ de recherche, avant la l
 
 - [ ] **Step 7: Vérifier que la liste se rafraîchit après création**
 
-Run: `bun test src/routes/_authenticated/posts.test.tsx`
+Run: `bunx vitest run src/routes/_authenticated/posts.test.tsx`
 Expected: PASS — les 3 tests existants passent toujours
 
 - [ ] **Step 8: Vérifier dans le navigateur**
@@ -2450,7 +2475,7 @@ Attendu : sur `/posts`, créer un post l'affiche en tête de liste sans recharge
 
 - [ ] **Step 9: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 10: Commit**
@@ -2508,7 +2533,7 @@ Connexion de démonstration : n'importe quelle adresse email, mot de passe
 |---|---|
 | `bun dev` | Serveur de développement (régénère l'arbre de routes en watch) |
 | `bun run build` | Vérification de types puis build de production |
-| `bun test` | Suite de tests |
+| `bun run test` | Suite de tests |
 | `bun run test:watch` | Tests en watch |
 | `bun run typecheck` | Vérification de types seule |
 | `bun run lint` | ESLint |
@@ -2561,9 +2586,33 @@ formulaires et variables d'environnement passent par un schéma.
    `posts.*`, et les handlers correspondants dans `src/mocks/handlers.ts`.
 ````
 
+- [ ] **Step 1 bis: Couvrir les transitions d'authentification**
+
+Ajouté en cours d'exécution. Les tests des tâches précédentes reposent tous sur
+`renderRoute`, qui fige un instantané d'authentification : ni la connexion ni la
+déconnexion n'étaient couvertes, alors que ce sont les deux endroits où un piège
+d'ordonnancement s'est déjà matérialisé.
+
+`src/test/utils.tsx` reçoit un second helper, `renderApp({ initialEntries })`,
+qui monte l'application comme `main.tsx` — vrai `AuthProvider`, contexte injecté
+par la prop `context` du `RouterProvider` — de sorte que l'état
+d'authentification évolue pendant le test. `src/test/setup.ts` vide
+`localStorage` après chaque test, sans quoi un test connecté contaminerait le
+suivant.
+
+`src/routes/auth-flow.test.tsx` couvre trois parcours : connexion suivie d'un
+retour sur la page initialement demandée, mot de passe refusé sans navigation,
+et déconnexion qui quitte réellement la page protégée.
+
+Ces trois tests doivent être contre-vérifiés : remplacer la navigation du
+`logout` par `router.invalidate()` doit faire échouer le test de déconnexion, et
+retirer `await router.invalidate()` de `login.tsx` doit faire échouer celui de
+connexion. Sans cette contre-épreuve, rien ne garantit qu'ils attrapent les
+régressions qu'ils visent.
+
 - [ ] **Step 2: Vérifier la suite complète**
 
-Run: `bun run typecheck && bun run lint && bun test && bun run build`
+Run: `bun run typecheck && bun run lint && bun run test && bun run build`
 Expected: les quatre commandes réussissent ; `bun run build` produit `dist/`
 
 - [ ] **Step 3: Vérifier le formatage**
