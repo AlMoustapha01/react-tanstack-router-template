@@ -43,6 +43,9 @@ function RootLayout() {
           <Link to="/dashboard" className={navLinkClass}>
             Dashboard
           </Link>
+          <Link to="/posts" search={{ page: 1 }} className={navLinkClass}>
+            Posts
+          </Link>
         </nav>
         {auth.isAuthenticated ? (
           <div className="flex items-center gap-3">

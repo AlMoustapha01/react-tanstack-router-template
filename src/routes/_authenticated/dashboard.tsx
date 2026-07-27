@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 
 import { useAuth } from "@/features/auth/use-auth"
 
@@ -12,6 +12,13 @@ function DashboardPage() {
         Signed in as {auth.user?.email}. This route is behind the
         <code className="mx-1">_authenticated</code> layout guard.
       </p>
+      <Link
+        to="/posts"
+        search={{ page: 1 }}
+        className="underline underline-offset-4"
+      >
+        Browse posts
+      </Link>
     </div>
   )
 }
