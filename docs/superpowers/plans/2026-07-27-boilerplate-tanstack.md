@@ -2064,14 +2064,18 @@ Le champ de recherche a son propre état local, resynchronisé depuis l'URL. Le 
 directement à `search.q` ne fonctionne pas : `navigate()` est asynchrone, et React
 réinitialise la valeur DOM d'un champ contrôlé à la dernière valeur committée après
 chaque frappe. Résultat, en frappe rapide, seul le dernier caractère survit. L'état
-local rend la saisie immédiate, l'URL reste la source de vérité pour les données,
-et l'effet gère les changements d'URL qui ne viennent pas du clavier (retour arrière,
-lien partagé).
+local rend la saisie immédiate et l'URL reste la source de vérité pour les données.
+
+La resynchronisation se fait **pendant le rendu**, pas dans un `useEffect` : c'est le
+cas « ajuster un état quand une prop change » documenté par React. Un effet
+laisserait React peindre une fois avec l'ancien texte dans le champ à côté de la
+liste déjà à jour, avant de corriger — exactement le décalage que cette section
+cherche à éliminer.
 
 ```tsx
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -2084,12 +2088,16 @@ function PostsPage() {
   const navigate = Route.useNavigate()
   const { data } = useSuspenseQuery(postsQueryOptions(search))
   const [query, setQuery] = useState(search.q ?? "")
+  const [previousQ, setPreviousQ] = useState(search.q)
   const pageCount = Math.max(1, Math.ceil(data.total / data.pageSize))
 
-  // Resynchronise le champ quand l'URL change sans passer par le clavier.
-  useEffect(() => {
+  // Resynchronise le champ quand l'URL change sans passer par le clavier
+  // (retour arrière, pagination, lien partagé). Ajustement pendant le rendu :
+  // le champ et la liste sont cohérents dès le même commit.
+  if (search.q !== previousQ) {
+    setPreviousQ(search.q)
     setQuery(search.q ?? "")
-  }, [search.q])
+  }
 
   return (
     <div className="flex max-w-2xl flex-col gap-4 text-sm">
