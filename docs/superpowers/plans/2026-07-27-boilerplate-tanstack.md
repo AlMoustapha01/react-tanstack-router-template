@@ -2586,6 +2586,30 @@ formulaires et variables d'environnement passent par un schéma.
    `posts.*`, et les handlers correspondants dans `src/mocks/handlers.ts`.
 ````
 
+- [ ] **Step 1 bis: Couvrir les transitions d'authentification**
+
+Ajouté en cours d'exécution. Les tests des tâches précédentes reposent tous sur
+`renderRoute`, qui fige un instantané d'authentification : ni la connexion ni la
+déconnexion n'étaient couvertes, alors que ce sont les deux endroits où un piège
+d'ordonnancement s'est déjà matérialisé.
+
+`src/test/utils.tsx` reçoit un second helper, `renderApp({ initialEntries })`,
+qui monte l'application comme `main.tsx` — vrai `AuthProvider`, contexte injecté
+par la prop `context` du `RouterProvider` — de sorte que l'état
+d'authentification évolue pendant le test. `src/test/setup.ts` vide
+`localStorage` après chaque test, sans quoi un test connecté contaminerait le
+suivant.
+
+`src/routes/auth-flow.test.tsx` couvre trois parcours : connexion suivie d'un
+retour sur la page initialement demandée, mot de passe refusé sans navigation,
+et déconnexion qui quitte réellement la page protégée.
+
+Ces trois tests doivent être contre-vérifiés : remplacer la navigation du
+`logout` par `router.invalidate()` doit faire échouer le test de déconnexion, et
+retirer `await router.invalidate()` de `login.tsx` doit faire échouer celui de
+connexion. Sans cette contre-épreuve, rien ne garantit qu'ils attrapent les
+régressions qu'ils visent.
+
 - [ ] **Step 2: Vérifier la suite complète**
 
 Run: `bun run typecheck && bun run lint && bun run test && bun run build`

@@ -18,6 +18,9 @@ afterEach(() => {
   cleanup()
   server.resetHandlers()
   resetMockPosts()
+  // L'authentification de démonstration persiste dans localStorage : sans ce
+  // nettoyage, un test qui se connecte laisserait le suivant déjà authentifié.
+  localStorage.clear()
 })
 
 afterAll(() => {
