@@ -26,12 +26,13 @@ describe("posts routes", () => {
       expect(screen.getByText("Typed routing end to end")).toBeInTheDocument()
     })
 
-    await user.type(screen.getByLabelText("Search posts"), "loaders")
+    await user.type(screen.getByLabelText("Search posts"), "loaders{Enter}")
 
     await waitFor(() => {
       expect(screen.getAllByRole("article")).toHaveLength(1)
     })
 
+    expect(screen.getByText("Loaders meet the query cache")).toBeInTheDocument()
     expect(router.state.location.search).toEqual({ page: 1, q: "loaders" })
   })
 

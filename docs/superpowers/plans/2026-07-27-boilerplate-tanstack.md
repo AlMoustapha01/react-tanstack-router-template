@@ -2028,12 +2028,13 @@ describe("posts routes", () => {
       expect(screen.getByText("Typed routing end to end")).toBeInTheDocument()
     })
 
-    await user.type(screen.getByLabelText("Search posts"), "loaders")
+    await user.type(screen.getByLabelText("Search posts"), "loaders{Enter}")
 
     await waitFor(() => {
       expect(screen.getAllByRole("article")).toHaveLength(1)
     })
 
+    expect(screen.getByText("Loaders meet the query cache")).toBeInTheDocument()
     expect(router.state.location.search).toEqual({ page: 1, q: "loaders" })
   })
 
@@ -2060,17 +2061,17 @@ Expected: FAIL — les routes `/posts` et `/posts/$postId` n'existent pas
 
 `src/routes/_authenticated/posts.index.tsx` — `loaderDeps` est obligatoire : sans lui, le loader ne se rejoue pas quand les search params changent.
 
-Le champ de recherche a son propre état local, resynchronisé depuis l'URL. Le lier
-directement à `search.q` ne fonctionne pas : `navigate()` est asynchrone, et React
-réinitialise la valeur DOM d'un champ contrôlé à la dernière valeur committée après
-chaque frappe. Résultat, en frappe rapide, seul le dernier caractère survit. L'état
-local rend la saisie immédiate et l'URL reste la source de vérité pour les données.
+Le champ de recherche vit sur son propre état et n'écrit dans l'URL qu'à la
+validation (Entrée ou envoi du formulaire).
 
-La resynchronisation se fait **pendant le rendu**, pas dans un `useEffect` : c'est le
-cas « ajuster un état quand une prop change » documenté par React. Un effet
-laisserait React peindre une fois avec l'ancien texte dans le champ à côté de la
-liste déjà à jour, avant de corriger — exactement le décalage que cette section
-cherche à éliminer.
+Naviguer à chaque frappe paraît plus vif, mais c'est une course insoluble :
+`navigate()` est asynchrone, donc l'URL reste en retard sur la saisie, et chaque
+rendu déclenché par la navigation précédente réécrit le champ avec une valeur
+périmée. En frappe rapide, seuls quelques caractères survivent. Ni un `useEffect`
+de resynchronisation, ni l'ajustement pendant le rendu, ni la suppression de toute
+resynchronisation ne corrigent le problème — c'est la navigation par frappe qui est
+en cause. La validation explicite le supprime, et l'URL reste la source de vérité
+des données affichées.
 
 ```tsx
 import { useSuspenseQuery } from "@tanstack/react-query"
@@ -2088,35 +2089,27 @@ function PostsPage() {
   const navigate = Route.useNavigate()
   const { data } = useSuspenseQuery(postsQueryOptions(search))
   const [query, setQuery] = useState(search.q ?? "")
-  const [previousQ, setPreviousQ] = useState(search.q)
   const pageCount = Math.max(1, Math.ceil(data.total / data.pageSize))
-
-  // Resynchronise le champ quand l'URL change sans passer par le clavier
-  // (retour arrière, pagination, lien partagé). Ajustement pendant le rendu :
-  // le champ et la liste sont cohérents dès le même commit.
-  if (search.q !== previousQ) {
-    setPreviousQ(search.q)
-    setQuery(search.q ?? "")
-  }
 
   return (
     <div className="flex max-w-2xl flex-col gap-4 text-sm">
-      <div className="flex flex-col gap-1.5">
+      <form
+        className="flex flex-col gap-1.5"
+        onSubmit={(event) => {
+          event.preventDefault()
+
+          void navigate({
+            search: { page: 1, q: query === "" ? undefined : query },
+          })
+        }}
+      >
         <Label htmlFor="posts-search">Search posts</Label>
         <Input
           id="posts-search"
           value={query}
-          onChange={(event) => {
-            const value = event.target.value
-
-            setQuery(value)
-            void navigate({
-              search: { page: 1, q: value === "" ? undefined : value },
-              replace: true,
-            })
-          }}
+          onChange={(event) => setQuery(event.target.value)}
         />
-      </div>
+      </form>
 
       <div className="flex flex-col gap-3">
         {data.items.map((post) => (

@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,36 +12,34 @@ function PostsPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
   const { data } = useSuspenseQuery(postsQueryOptions(search))
+  // Le champ vit sur son propre état, initialisé depuis l'URL, et n'écrit dans
+  // l'URL qu'à la validation. Naviguer à chaque frappe paraît plus vif mais
+  // crée une course : `navigate()` est asynchrone, donc l'URL reste en retard
+  // sur la saisie, et chaque rendu déclenché par la navigation précédente
+  // réécrit le champ avec une valeur périmée. La validation explicite supprime
+  // la course, et l'URL reste la source de vérité des données affichées.
   const [query, setQuery] = useState(search.q ?? "")
   const pageCount = Math.max(1, Math.ceil(data.total / data.pageSize))
 
-  // Resynchronise le champ quand l'URL change sans passer par le clavier
-  // (retour arrière, lien partagé) : c'est une synchronisation avec une
-  // source externe (l'URL), pas un état dérivé — l'exception documentée de
-  // la règle `set-state-in-effect`.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setQuery(search.q ?? "")
-  }, [search.q])
-
   return (
     <div className="flex max-w-2xl flex-col gap-4 text-sm">
-      <div className="flex flex-col gap-1.5">
+      <form
+        className="flex flex-col gap-1.5"
+        onSubmit={(event) => {
+          event.preventDefault()
+
+          void navigate({
+            search: { page: 1, q: query === "" ? undefined : query },
+          })
+        }}
+      >
         <Label htmlFor="posts-search">Search posts</Label>
         <Input
           id="posts-search"
           value={query}
-          onChange={(event) => {
-            const value = event.target.value
-
-            setQuery(value)
-            void navigate({
-              search: { page: 1, q: value === "" ? undefined : value },
-              replace: true,
-            })
-          }}
+          onChange={(event) => setQuery(event.target.value)}
         />
-      </div>
+      </form>
 
       <div className="flex flex-col gap-3">
         {data.items.map((post) => (
@@ -86,7 +84,9 @@ function PostsPage() {
 
 export const Route = createFileRoute("/_authenticated/posts/")({
   validateSearch: postsSearchSchema,
-  loaderDeps: ({ search }) => search,
+  // TEMP contre-épreuve : deps constant, insensible à `search` — équivalent
+  // fonctionnel de "loaderDeps absent" sans casser le typage de `deps`.
+  loaderDeps: () => ({ page: 1 }),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(postsQueryOptions(deps)),
   component: PostsPage,
