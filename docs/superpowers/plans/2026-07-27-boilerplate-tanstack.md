@@ -24,7 +24,8 @@ Ces contraintes s'appliquent à **toutes** les tâches.
 - **Langue** : les identifiants et le texte d'interface sont en **anglais**, comme le code existant. Les commentaires explicatifs et les messages de commit sont en **français**.
 - **Les liens sont typés** : `<Link to="/x">` ne compile que si la route `/x` existe déjà dans `routeTree.gen.ts`. C'est pourquoi la navigation du shell est construite par étapes, tâche après tâche, au fur et à mesure que les routes apparaissent. Ne pas anticiper un lien vers une route d'une tâche ultérieure.
 - **Pas de `globals: true` dans Vitest** : importer explicitement `describe`, `it`, `expect`, `vi`, `beforeEach` depuis `"vitest"`. Cela évite de modifier `tsconfig.app.json`.
-- **Commandes de vérification** : `bun run typecheck`, `bun run lint`, `bun test`.
+- **Commandes de vérification** : `bun run typecheck`, `bun run lint`, `bun run test`.
+- **Ne jamais lancer `bun test`** (sans `run`) : cette forme invoque le runner de test natif de Bun, qui ignore `vite.config.ts` — donc ni `environment: "jsdom"` ni `setupFiles`. Tout test touchant au DOM, à React ou à MSW passerait à côté de son environnement. Utiliser `bun run test` pour la suite complète et `bunx vitest run <fichier>` pour un fichier ciblé.
 
 ## File Structure
 
@@ -74,7 +75,7 @@ Fichier **supprimé** : `src/App.tsx` (contenu de démo migré vers `src/routes/
 
 ### Task 1: Socle de test et environnement typé
 
-Installe toutes les dépendances du projet, câble Vitest, et livre le premier module testé (`env`). À la fin de cette tâche, `bun test` fonctionne.
+Installe toutes les dépendances du projet, câble Vitest, et livre le premier module testé (`env`). À la fin de cette tâche, `bun run test` fonctionne.
 
 **Files:**
 - Modify: `package.json` (dépendances + scripts)
@@ -180,7 +181,7 @@ describe("parseEnv", () => {
 
 - [ ] **Step 6: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/lib/env.test.ts`
+Run: `bunx vitest run src/lib/env.test.ts`
 Expected: FAIL — `Failed to resolve import "./env"`
 
 - [ ] **Step 7: Implémenter `src/lib/env.ts`**
@@ -213,7 +214,7 @@ export const env = parseEnv(import.meta.env)
 
 - [ ] **Step 8: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/lib/env.test.ts`
+Run: `bunx vitest run src/lib/env.test.ts`
 Expected: PASS — 3 tests
 
 - [ ] **Step 9: Documenter la variable d'environnement**
@@ -547,7 +548,7 @@ describe("posts api", () => {
 
 - [ ] **Step 6: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/features/posts/api/posts.api.test.ts`
+Run: `bunx vitest run src/features/posts/api/posts.api.test.ts`
 Expected: FAIL — `Failed to resolve import "./posts.api"`
 
 - [ ] **Step 7: Implémenter le client HTTP**
@@ -605,7 +606,7 @@ export async function createPost(input: CreatePostInput): Promise<Post> {
 
 - [ ] **Step 8: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/features/posts/api/posts.api.test.ts`
+Run: `bunx vitest run src/features/posts/api/posts.api.test.ts`
 Expected: PASS — 6 tests
 
 - [ ] **Step 9: Générer le service worker MSW pour le navigateur**
@@ -626,7 +627,7 @@ Et dans `eslint.config.js`, remplacer la ligne `globalIgnores(['dist'])` par :
 
 - [ ] **Step 10: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: tous les tests passent, aucune erreur
 
 - [ ] **Step 11: Commit**
@@ -763,7 +764,7 @@ describe("posts queries", () => {
 
 - [ ] **Step 4: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/features/posts/api/posts.queries.test.tsx`
+Run: `bunx vitest run src/features/posts/api/posts.queries.test.tsx`
 Expected: FAIL — `Failed to resolve import "./posts.queries"`
 
 - [ ] **Step 5: Implémenter les query options**
@@ -799,12 +800,12 @@ export function postQueryOptions(postId: string) {
 
 - [ ] **Step 6: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/features/posts/api/posts.queries.test.tsx`
+Run: `bunx vitest run src/features/posts/api/posts.queries.test.tsx`
 Expected: PASS — 3 tests
 
 - [ ] **Step 7: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 8: Commit**
@@ -942,7 +943,7 @@ Ce dernier test rend volontairement un composant qui lève : React écrit la tra
 
 - [ ] **Step 2: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/features/auth/auth-provider.test.tsx`
+Run: `bunx vitest run src/features/auth/auth-provider.test.tsx`
 Expected: FAIL — `Failed to resolve import "./auth-context"`
 
 - [ ] **Step 3: Créer le contexte et les types**
@@ -1062,12 +1063,12 @@ export function useAuth() {
 
 - [ ] **Step 6: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/features/auth/auth-provider.test.tsx`
+Run: `bunx vitest run src/features/auth/auth-provider.test.tsx`
 Expected: PASS — 7 tests
 
 - [ ] **Step 7: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 8: Commit**
@@ -1517,7 +1518,7 @@ describe("home route", () => {
 
 - [ ] **Step 13: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/routes/index.test.tsx`
+Run: `bunx vitest run src/routes/index.test.tsx`
 Expected: PASS — 2 tests
 
 Si le test échoue sur un import de `routeTree.gen.ts` manquant, relancer `bun run routes:generate`.
@@ -1529,7 +1530,7 @@ Attendu : la page d'accueil s'affiche, le lien `Home` est présent, les deux pan
 
 - [ ] **Step 15: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 16: Commit**
@@ -1612,7 +1613,7 @@ describe("authenticated layout", () => {
 
 - [ ] **Step 3: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/routes/_authenticated.test.tsx`
+Run: `bunx vitest run src/routes/_authenticated.test.tsx`
 Expected: FAIL — les routes `/dashboard` et `/login` n'existent pas
 
 - [ ] **Step 4: Créer le layout protégé**
@@ -1897,12 +1898,12 @@ et le paragraphe d'accueil devient :
     expect(screen.getAllByRole("link", { name: "Sign in" })).toHaveLength(2)
 ```
 
-Run: `bun test src/routes/index.test.tsx`
+Run: `bunx vitest run src/routes/index.test.tsx`
 Expected: PASS — 2 tests
 
 - [ ] **Step 10: Lancer le test de la garde et vérifier qu'il passe**
 
-Run: `bun test src/routes/_authenticated.test.tsx`
+Run: `bunx vitest run src/routes/_authenticated.test.tsx`
 Expected: PASS — 3 tests
 
 Le troisième test (`renders the login form`) trouve deux éléments nommés « Sign in » : le lien de la barre de navigation et le bouton du formulaire. `getByRole("button", { name: "Sign in" })` ne remonte que le bouton — c'est bien ce que le test interroge.
@@ -1914,7 +1915,7 @@ Attendu : `/dashboard` en anonyme redirige vers `/login?redirect=%2Fdashboard` ;
 
 - [ ] **Step 12: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 13: Commit**
@@ -1973,7 +1974,7 @@ describe("PostCard", () => {
 
 - [ ] **Step 2: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/features/posts/components/post-card.test.tsx`
+Run: `bunx vitest run src/features/posts/components/post-card.test.tsx`
 Expected: FAIL — `Failed to resolve import "./post-card"`
 
 - [ ] **Step 3: Implémenter `PostCard`**
@@ -1998,7 +1999,7 @@ export function PostCard({ post }: { post: Post }) {
 
 - [ ] **Step 4: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/features/posts/components/post-card.test.tsx`
+Run: `bunx vitest run src/features/posts/components/post-card.test.tsx`
 Expected: PASS — 1 test
 
 - [ ] **Step 5: Écrire le test des routes posts**
@@ -2059,7 +2060,7 @@ describe("posts routes", () => {
 
 - [ ] **Step 6: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/routes/_authenticated/posts.test.tsx`
+Run: `bunx vitest run src/routes/_authenticated/posts.test.tsx`
 Expected: FAIL — les routes `/posts` et `/posts/$postId` n'existent pas
 
 - [ ] **Step 7: Créer la route liste**
@@ -2206,7 +2207,7 @@ La route existe désormais. Dans `src/routes/__root.tsx`, ajouter à la fin du `
 
 - [ ] **Step 11: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/routes/_authenticated/posts.test.tsx`
+Run: `bunx vitest run src/routes/_authenticated/posts.test.tsx`
 Expected: PASS — 3 tests
 
 - [ ] **Step 12: Vérifier dans le navigateur**
@@ -2216,7 +2217,7 @@ Attendu : après connexion, `/posts` liste 3 posts, la recherche met à jour l'U
 
 - [ ] **Step 13: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 14: Commit**
@@ -2290,7 +2291,7 @@ describe("PostForm", () => {
 
 - [ ] **Step 2: Lancer le test et vérifier qu'il échoue**
 
-Run: `bun test src/features/posts/components/post-form.test.tsx`
+Run: `bunx vitest run src/features/posts/components/post-form.test.tsx`
 Expected: FAIL — `Failed to resolve import "./post-form"`
 
 - [ ] **Step 3: Ajouter la mutation**
@@ -2417,7 +2418,7 @@ export function PostForm({ onCreated }: { onCreated?: () => void }) {
 
 - [ ] **Step 5: Lancer le test et vérifier qu'il passe**
 
-Run: `bun test src/features/posts/components/post-form.test.tsx`
+Run: `bunx vitest run src/features/posts/components/post-form.test.tsx`
 Expected: PASS — 2 tests
 
 - [ ] **Step 6: Monter le formulaire sur la page liste**
@@ -2440,7 +2441,7 @@ et insérer le formulaire juste après le bloc du champ de recherche, avant la l
 
 - [ ] **Step 7: Vérifier que la liste se rafraîchit après création**
 
-Run: `bun test src/routes/_authenticated/posts.test.tsx`
+Run: `bunx vitest run src/routes/_authenticated/posts.test.tsx`
 Expected: PASS — les 3 tests existants passent toujours
 
 - [ ] **Step 8: Vérifier dans le navigateur**
@@ -2450,7 +2451,7 @@ Attendu : sur `/posts`, créer un post l'affiche en tête de liste sans recharge
 
 - [ ] **Step 9: Vérifier l'ensemble**
 
-Run: `bun test && bun run typecheck && bun run lint`
+Run: `bun run test && bun run typecheck && bun run lint`
 Expected: aucune erreur
 
 - [ ] **Step 10: Commit**
@@ -2508,7 +2509,7 @@ Connexion de démonstration : n'importe quelle adresse email, mot de passe
 |---|---|
 | `bun dev` | Serveur de développement (régénère l'arbre de routes en watch) |
 | `bun run build` | Vérification de types puis build de production |
-| `bun test` | Suite de tests |
+| `bun run test` | Suite de tests |
 | `bun run test:watch` | Tests en watch |
 | `bun run typecheck` | Vérification de types seule |
 | `bun run lint` | ESLint |
@@ -2563,7 +2564,7 @@ formulaires et variables d'environnement passent par un schéma.
 
 - [ ] **Step 2: Vérifier la suite complète**
 
-Run: `bun run typecheck && bun run lint && bun test && bun run build`
+Run: `bun run typecheck && bun run lint && bun run test && bun run build`
 Expected: les quatre commandes réussissent ; `bun run build` produit `dist/`
 
 - [ ] **Step 3: Vérifier le formatage**
