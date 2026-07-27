@@ -2060,9 +2060,18 @@ Expected: FAIL — les routes `/posts` et `/posts/$postId` n'existent pas
 
 `src/routes/_authenticated/posts.index.tsx` — `loaderDeps` est obligatoire : sans lui, le loader ne se rejoue pas quand les search params changent.
 
+Le champ de recherche a son propre état local, resynchronisé depuis l'URL. Le lier
+directement à `search.q` ne fonctionne pas : `navigate()` est asynchrone, et React
+réinitialise la valeur DOM d'un champ contrôlé à la dernière valeur committée après
+chaque frappe. Résultat, en frappe rapide, seul le dernier caractère survit. L'état
+local rend la saisie immédiate, l'URL reste la source de vérité pour les données,
+et l'effet gère les changements d'URL qui ne viennent pas du clavier (retour arrière,
+lien partagé).
+
 ```tsx
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { useEffect, useState } from "react"
 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -2074,7 +2083,13 @@ function PostsPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
   const { data } = useSuspenseQuery(postsQueryOptions(search))
+  const [query, setQuery] = useState(search.q ?? "")
   const pageCount = Math.max(1, Math.ceil(data.total / data.pageSize))
+
+  // Resynchronise le champ quand l'URL change sans passer par le clavier.
+  useEffect(() => {
+    setQuery(search.q ?? "")
+  }, [search.q])
 
   return (
     <div className="flex max-w-2xl flex-col gap-4 text-sm">
@@ -2082,10 +2097,11 @@ function PostsPage() {
         <Label htmlFor="posts-search">Search posts</Label>
         <Input
           id="posts-search"
-          value={search.q ?? ""}
+          value={query}
           onChange={(event) => {
             const value = event.target.value
 
+            setQuery(value)
             void navigate({
               search: { page: 1, q: value === "" ? undefined : value },
               replace: true,
