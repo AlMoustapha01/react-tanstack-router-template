@@ -10,7 +10,16 @@ import { DEMO_PASSWORD } from "@/features/auth/auth-context"
 import { useAuth } from "@/features/auth/use-auth"
 
 const loginSearchSchema = z.object({
-  redirect: z.string().optional(),
+  // Un redirect doit rester interne à l'application : une URL absolue passée
+  // à navigate({ href }) déclencherait une navigation document vers un autre
+  // domaine (open redirect). `.catch(undefined)` neutralise silencieusement
+  // une valeur malveillante ou malformée plutôt que de faire échouer la
+  // validation de la route.
+  redirect: z
+    .string()
+    .refine((value) => value.startsWith("/") && !value.startsWith("//"))
+    .optional()
+    .catch(undefined),
 })
 
 const loginFormSchema = z.object({

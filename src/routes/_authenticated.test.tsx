@@ -14,7 +14,9 @@ describe("authenticated layout", () => {
     expect(router.state.location.search).toEqual({ redirect: "/dashboard" })
   })
 
-  it("preserves search params in the redirect back URL", async () => {
+  it("keeps search params in the URL that beforeLoad captures for redirect", async () => {
+    // Couvre la capture par `_authenticated`'s beforeLoad (location.href),
+    // pas la branche `navigate({ href })` de login.tsx qui la consomme.
     const { router } = renderRoute({
       initialEntries: ["/dashboard?foo=bar"],
     })
@@ -52,5 +54,29 @@ describe("authenticated layout", () => {
 
     expect(screen.getByLabelText("Password")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument()
+  })
+
+  it("neutralizes an absolute-URL redirect search param (open redirect)", async () => {
+    const { router } = renderRoute({
+      initialEntries: ["/login?redirect=https://evil.example"],
+    })
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Email")).toBeInTheDocument()
+    })
+
+    expect(router.state.location.search).toEqual({})
+  })
+
+  it("neutralizes a protocol-relative redirect search param (//)", async () => {
+    const { router } = renderRoute({
+      initialEntries: ["/login?redirect=//evil.example"],
+    })
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Email")).toBeInTheDocument()
+    })
+
+    expect(router.state.location.search).toEqual({})
   })
 })

@@ -2,7 +2,7 @@ import {
   createRootRouteWithContext,
   Link,
   Outlet,
-  useRouter,
+  useNavigate,
 } from "@tanstack/react-router"
 import { lazy, Suspense } from "react"
 
@@ -31,7 +31,7 @@ const navLinkClass =
 
 function RootLayout() {
   const auth = useAuth()
-  const router = useRouter()
+  const navigate = useNavigate()
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -54,9 +54,13 @@ function RootLayout() {
               variant="outline"
               onClick={() => {
                 auth.logout()
-                // Rejoue les `beforeLoad` pour que les routes protégées
-                // montées redirigent immédiatement vers /login.
-                void router.invalidate()
+                // `auth.logout()` ne fait que `setUser(null)` : React ne
+                // l'applique qu'au rendu suivant, donc un `router.invalidate()`
+                // synchrone ici lirait encore l'ancien contexte authentifié
+                // et la garde `_authenticated` ne redirigerait pas. On navigue
+                // donc explicitement vers une route publique pour démonter la
+                // route protégée, sans dépendre de cet ordonnancement.
+                void navigate({ to: "/" })
               }}
             >
               Sign out
