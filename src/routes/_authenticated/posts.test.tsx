@@ -36,6 +36,31 @@ describe("posts routes", () => {
     expect(router.state.location.search).toEqual({ page: 1, q: "loaders" })
   })
 
+  it("shows a freshly created post at the top of the list", async () => {
+    const user = userEvent.setup()
+    renderRoute({ initialEntries: ["/posts"], user: testUser })
+
+    await waitFor(() => {
+      expect(screen.getByText("Typed routing end to end")).toBeInTheDocument()
+    })
+
+    await user.type(screen.getByLabelText("Title"), "A brand new post")
+    await user.type(
+      screen.getByLabelText("Body"),
+      "A body long enough to pass validation."
+    )
+    await user.click(screen.getByRole("button", { name: "Create post" }))
+
+    // La mutation invalide le cache : la liste se recharge sans navigation.
+    await waitFor(() => {
+      expect(screen.getByText("A brand new post")).toBeInTheDocument()
+    })
+
+    expect(screen.getAllByRole("article")[0]).toHaveTextContent(
+      "A brand new post"
+    )
+  })
+
   it("opens a post detail page", async () => {
     renderRoute({ initialEntries: ["/posts/3"], user: testUser })
 

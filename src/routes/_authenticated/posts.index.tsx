@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { postsQueryOptions } from "@/features/posts/api/posts.queries"
 import { PostCard } from "@/features/posts/components/post-card"
+import { PostForm } from "@/features/posts/components/post-form"
 import { postsSearchSchema } from "@/features/posts/schemas/post.schema"
 
 function PostsPage() {
@@ -40,6 +41,12 @@ function PostsPage() {
           onChange={(event) => setQuery(event.target.value)}
         />
       </form>
+
+      <PostForm
+        onCreated={() => {
+          void navigate({ search: { page: 1, q: undefined } })
+        }}
+      />
 
       <div className="flex flex-col gap-3">
         {data.items.map((post) => (

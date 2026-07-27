@@ -1,7 +1,11 @@
-import { queryOptions } from "@tanstack/react-query"
+import {
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query"
 
 import type { PostsSearch } from "../schemas/post.schema"
-import { fetchPost, fetchPosts } from "./posts.api"
+import { createPost, fetchPost, fetchPosts } from "./posts.api"
 
 export const postKeys = {
   all: ["posts"] as const,
@@ -20,5 +24,17 @@ export function postQueryOptions(postId: string) {
   return queryOptions({
     queryKey: postKeys.detail(postId),
     queryFn: () => fetchPost(postId),
+  })
+}
+
+export function useCreatePost() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: createPost,
+    onSuccess: () => {
+      // Toutes les listes deviennent obsolètes : on invalide la racine.
+      void queryClient.invalidateQueries({ queryKey: postKeys.all })
+    },
   })
 }
