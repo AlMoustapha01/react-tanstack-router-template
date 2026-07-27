@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
+
+import { buttonVariants } from "@/components/ui/button"
 
 function HomePage() {
   return (
@@ -7,8 +9,11 @@ function HomePage() {
         <h1 className="font-medium">Project ready!</h1>
         <p>
           Typed routing, a query cache, mocked API handlers and tests are all
-          wired up.
+          wired up. Sign in to reach the protected routes.
         </p>
+        <Link to="/login" className={buttonVariants({ className: "mt-2" })}>
+          Sign in
+        </Link>
       </div>
       <div className="font-mono text-xs text-muted-foreground">
         (Press <kbd>d</kbd> to toggle dark mode)

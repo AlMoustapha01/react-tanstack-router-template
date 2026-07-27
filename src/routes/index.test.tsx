@@ -13,7 +13,7 @@ describe("home route", () => {
       ).toBeInTheDocument()
     })
 
-    expect(screen.getByRole("link", { name: "Home" })).toBeInTheDocument()
+    expect(screen.getAllByRole("link", { name: "Sign in" })).toHaveLength(2)
   })
 
   it("renders the not-found component for an unknown path", async () => {

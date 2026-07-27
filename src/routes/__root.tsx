@@ -5,6 +5,8 @@ import {
 } from "@tanstack/react-router"
 import { lazy, Suspense } from "react"
 
+import { Button } from "@/components/ui/button"
+import { useAuth } from "@/features/auth/use-auth"
 import type { RouterContext } from "@/lib/router-context"
 
 const RouterDevtools = import.meta.env.PROD
@@ -27,6 +29,8 @@ const navLinkClass =
   "text-muted-foreground hover:text-foreground transition-colors data-[status=active]:text-foreground data-[status=active]:font-medium"
 
 function RootLayout() {
+  const auth = useAuth()
+
   return (
     <div className="flex min-h-svh flex-col">
       <header className="flex items-center gap-4 border-b px-6 py-3 text-sm">
@@ -34,7 +38,24 @@ function RootLayout() {
           <Link to="/" className={navLinkClass}>
             Home
           </Link>
+          <Link to="/dashboard" className={navLinkClass}>
+            Dashboard
+          </Link>
         </nav>
+        {auth.isAuthenticated ? (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">
+              {auth.user?.email}
+            </span>
+            <Button size="sm" variant="outline" onClick={auth.logout}>
+              Sign out
+            </Button>
+          </div>
+        ) : (
+          <Link to="/login" className={navLinkClass}>
+            Sign in
+          </Link>
+        )}
       </header>
 
       <main className="flex-1 p-6">
