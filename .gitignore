@@ -25,3 +25,8 @@ dist-ssr
 
 # Superpowers SDD scratch
 .superpowers/
+
+# Env
+.env
+.env.local
+.env.*.local
