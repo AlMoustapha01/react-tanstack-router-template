@@ -1,13 +1,13 @@
-import { useForm } from "@tanstack/react-form"
-import { createFileRoute, useRouter } from "@tanstack/react-router"
-import { useState } from "react"
-import { z } from "zod"
+import { useForm } from "@tanstack/react-form";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { DEMO_PASSWORD } from "@/features/auth/auth-context"
-import { useAuth } from "@/features/auth/use-auth"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { DEMO_PASSWORD } from "@/features/auth/auth-context";
+import { useAuth } from "@/features/auth/use-auth";
 
 const loginSearchSchema = z.object({
   // Un redirect doit rester interne à l'application : une URL absolue passée
@@ -20,57 +20,55 @@ const loginSearchSchema = z.object({
     .refine((value) => value.startsWith("/") && !value.startsWith("//"))
     .optional()
     .catch(undefined),
-})
+});
 
 const loginFormSchema = z.object({
   email: z.email("Enter a valid email address"),
   password: z.string().min(1, "Password is required"),
-})
+});
 
 function LoginPage() {
-  const auth = useAuth()
-  const router = useRouter()
-  const navigate = Route.useNavigate()
-  const search = Route.useSearch()
-  const [formError, setFormError] = useState<string | null>(null)
+  const auth = useAuth();
+  const router = useRouter();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
+  const [formError, setFormError] = useState<string | null>(null);
 
   const form = useForm({
     defaultValues: { email: "", password: "" },
     validators: { onChange: loginFormSchema },
     onSubmit: async ({ value }) => {
-      setFormError(null)
+      setFormError(null);
 
       try {
-        await auth.login(value)
+        await auth.login(value);
       } catch (error) {
-        setFormError(
-          error instanceof Error ? error.message : "Unable to sign in"
-        )
-        return
+        setFormError(error instanceof Error ? error.message : "Unable to sign in");
+        return;
       }
 
       // Rejoue les `beforeLoad` avec le nouveau contexte d'authentification.
-      await router.invalidate()
+      await router.invalidate();
 
       // `search.redirect` est une URL complète (pathname + search), pas un
       // simple pathname : seule l'option `href` la fait passer par l'analyse
       // d'URL. Utiliser `to` la traiterait comme un pathname littéral et
       // perdrait ses éventuels search params (ex. `/posts?page=2`).
       if (search.redirect) {
-        await navigate({ href: search.redirect })
+        await navigate({ href: search.redirect });
       } else {
-        await navigate({ to: "/dashboard" })
+        await navigate({ to: "/dashboard" });
       }
     },
-  })
+  });
 
   return (
     <form
       className="flex max-w-sm flex-col gap-4 text-sm"
       onSubmit={(event) => {
-        event.preventDefault()
-        event.stopPropagation()
-        void form.handleSubmit()
+        event.preventDefault();
+        event.stopPropagation();
+        void form.handleSubmit();
       }}
     >
       <div>
@@ -94,9 +92,7 @@ function LoginPage() {
               onChange={(event) => field.handleChange(event.target.value)}
             />
             {field.state.meta.errors.length > 0 && (
-              <p className="text-xs text-destructive">
-                {field.state.meta.errors[0]?.message}
-              </p>
+              <p className="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
             )}
           </div>
         )}
@@ -115,9 +111,7 @@ function LoginPage() {
               onChange={(event) => field.handleChange(event.target.value)}
             />
             {field.state.meta.errors.length > 0 && (
-              <p className="text-xs text-destructive">
-                {field.state.meta.errors[0]?.message}
-              </p>
+              <p className="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
             )}
           </div>
         )}
@@ -137,10 +131,10 @@ function LoginPage() {
         )}
       </form.Subscribe>
     </form>
-  )
+  );
 }
 
 export const Route = createFileRoute("/login")({
   validateSearch: loginSearchSchema,
   component: LoginPage,
-})
+});

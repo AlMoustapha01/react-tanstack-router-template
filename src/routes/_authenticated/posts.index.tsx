@@ -1,50 +1,46 @@
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState } from "react"
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { postsQueryOptions } from "@/features/posts/api/posts.queries"
-import { PostCard } from "@/features/posts/components/post-card"
-import { PostForm } from "@/features/posts/components/post-form"
-import { postsSearchSchema } from "@/features/posts/schemas/post.schema"
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { postsQueryOptions } from "@/features/posts/api/posts.queries";
+import { PostCard } from "@/features/posts/components/post-card";
+import { PostForm } from "@/features/posts/components/post-form";
+import { postsSearchSchema } from "@/features/posts/schemas/post.schema";
 
 function PostsPage() {
-  const search = Route.useSearch()
-  const navigate = Route.useNavigate()
-  const { data } = useSuspenseQuery(postsQueryOptions(search))
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const { data } = useSuspenseQuery(postsQueryOptions(search));
   // Le champ vit sur son propre état, initialisé depuis l'URL, et n'écrit dans
   // l'URL qu'à la validation. Naviguer à chaque frappe paraît plus vif mais
   // crée une course : `navigate()` est asynchrone, donc l'URL reste en retard
   // sur la saisie, et chaque rendu déclenché par la navigation précédente
   // réécrit le champ avec une valeur périmée. La validation explicite supprime
   // la course, et l'URL reste la source de vérité des données affichées.
-  const [query, setQuery] = useState(search.q ?? "")
-  const pageCount = Math.max(1, Math.ceil(data.total / data.pageSize))
+  const [query, setQuery] = useState(search.q ?? "");
+  const pageCount = Math.max(1, Math.ceil(data.total / data.pageSize));
 
   return (
     <div className="flex max-w-2xl flex-col gap-4 text-sm">
       <form
         className="flex flex-col gap-1.5"
         onSubmit={(event) => {
-          event.preventDefault()
+          event.preventDefault();
 
           void navigate({
             search: { page: 1, q: query === "" ? undefined : query },
-          })
+          });
         }}
       >
         <Label htmlFor="posts-search">Search posts</Label>
-        <Input
-          id="posts-search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
+        <Input id="posts-search" value={query} onChange={(event) => setQuery(event.target.value)} />
       </form>
 
       <PostForm
         onCreated={() => {
-          void navigate({ search: { page: 1, q: undefined } })
+          void navigate({ search: { page: 1, q: undefined } });
         }}
       />
 
@@ -86,7 +82,7 @@ function PostsPage() {
         </Link>
       </div>
     </div>
-  )
+  );
 }
 
 export const Route = createFileRoute("/_authenticated/posts/")({
@@ -94,7 +90,6 @@ export const Route = createFileRoute("/_authenticated/posts/")({
   // TEMP contre-épreuve : deps constant, insensible à `search` — équivalent
   // fonctionnel de "loaderDeps absent" sans casser le typage de `deps`.
   loaderDeps: () => ({ page: 1 }),
-  loader: ({ context, deps }) =>
-    context.queryClient.ensureQueryData(postsQueryOptions(deps)),
+  loader: ({ context, deps }) => context.queryClient.ensureQueryData(postsQueryOptions(deps)),
   component: PostsPage,
-})
+});

@@ -1,11 +1,11 @@
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { postQueryOptions } from "@/features/posts/api/posts.queries"
+import { postQueryOptions } from "@/features/posts/api/posts.queries";
 
 function PostDetailPage() {
-  const { postId } = Route.useParams()
-  const { data: post } = useSuspenseQuery(postQueryOptions(postId))
+  const { postId } = Route.useParams();
+  const { data: post } = useSuspenseQuery(postQueryOptions(postId));
 
   return (
     <div className="flex max-w-2xl flex-col gap-3 text-sm">
@@ -22,11 +22,11 @@ function PostDetailPage() {
       </p>
       <p>{post.body}</p>
     </div>
-  )
+  );
 }
 
 export const Route = createFileRoute("/_authenticated/posts/$postId")({
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(postQueryOptions(params.postId)),
   component: PostDetailPage,
-})
+});
