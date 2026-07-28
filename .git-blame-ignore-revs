@@ -1,0 +1,8 @@
+# Révisions à ignorer dans `git blame` : reformatages de masse, sans
+# changement de sémantique.
+#
+# Activer localement une fois :
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: reformater le code TS/TSX avec les défauts d'oxfmt
+ce2a1c3b34869e56b900315300ed687effe8491c
