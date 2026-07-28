@@ -46,6 +46,11 @@ Connexion de démonstration : n'importe quelle adresse email, mot de passe
 > environnement jsdom, ni `setupFiles` — donc pas de serveur MSW. Pour un seul
 > fichier : `bunx vitest run <chemin>`.
 
+> Un hook de pré-commit lance `bun run lint` et `bun run format:check` avant
+> chaque commit (moins d'une seconde). Il s'installe seul au premier
+> `bun install`, via lefthook — rien à faire après un clone. Pour passer
+> outre ponctuellement : `git commit --no-verify`.
+
 ## Organisation
 
 ```
