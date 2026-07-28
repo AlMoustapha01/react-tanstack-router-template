@@ -35,8 +35,10 @@ Connexion de démonstration : n'importe quelle adresse email, mot de passe
 | `bun run test` | Suite de tests |
 | `bun run test:watch` | Tests en watch |
 | `bun run typecheck` | Vérification de types seule |
-| `bun run lint` | ESLint |
-| `bun run format` | Prettier |
+| `bun run lint` | oxlint |
+| `bun run lint:fix` | oxlint, corrections automatiques |
+| `bun run format` | oxfmt |
+| `bun run format:check` | oxfmt, vérification sans écriture |
 | `bun run routes:generate` | Régénère `src/routeTree.gen.ts` à la demande |
 
 > Lancez les tests avec `bun run test`, pas `bun test`. Cette seconde forme

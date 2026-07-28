@@ -719,25 +719,62 @@ grep -nE "eslint|prettier" package.json || echo "package.json propre"
 
 Attendu : `package.json propre`.
 
-Puis un balayage large du dépôt. **Deux occurrences sont légitimes et doivent subsister** — les
+Puis un balayage large du dépôt. **Quatre occurrences sont légitimes et doivent subsister** — les
 filtrer aveuglément masquerait un vrai résidu, donc on les nomme :
 
 ```bash
 grep -rniE "eslint|prettier" --exclude-dir=node_modules --exclude-dir=.git \
   --exclude-dir=dist --exclude-dir=docs --exclude=bun.lock . \
-  | grep -vE '^\./\.oxlintrc\.jsonc:|^\./public/mockServiceWorker\.js:' \
+  | grep -vE '^\.?/?\.oxlintrc\.jsonc:|^\.?/?public/mockServiceWorker\.js:|^\.?/?src/routeTree\.gen\.ts:|^\.?/?src/components/theme-provider\.tsx:' \
   || echo "aucun résidu inattendu"
 ```
 
 Attendu : `aucun résidu inattendu`.
 
+Le filtre tolère un préfixe `./` optionnel : selon la version de `grep`, les chemins sortent avec ou
+sans. Un filtre ancré sur `^\./` seul laisserait tout passer.
+
 | Occurrence | Pourquoi elle reste |
 |---|---|
 | `.oxlintrc.jsonc` → `"plugins": ["eslint", ...]` | `eslint` est le nom du plugin de règles de base **d'oxlint**, pas une référence à ESLint. Le commentaire du fichier cite aussi `eslint.config.js` pour expliquer la filiation. |
-| `public/mockServiceWorker.js` → `/* eslint-disable */` | Fichier généré par MSW, déjà exclu du lint et du formatage. Il est régénéré par MSW, pas édité à la main : ne pas y toucher. |
+| `public/mockServiceWorker.js` → `/* eslint-disable */` | Fichier généré par MSW, déjà exclu du lint et du formatage. Régénéré par MSW, pas édité à la main. |
+| `src/routeTree.gen.ts` → `/* eslint-disable */` | Fichier généré par TanStack Router, exclu du lint et du formatage. Régénéré par `tsr generate`. |
+| `src/components/theme-provider.tsx` → `/* eslint-disable react/only-export-components */` | `eslint-disable` est la syntaxe de suppression qu'**oxlint lui-même** reconnaît ; le mot est donc inévitable. Voir l'étape 4.7bis. |
 
 `docs/` est exclu du balayage : le spec et ce plan mentionnent légitimement les outils remplacés.
 `bun.lock` l'est aussi, car il conserve `prettier` en transitif comme expliqué à l'étape 4.2.
+
+- [ ] **Étape 4.7bis : Corriger le commentaire de suppression de `theme-provider.tsx`**
+
+Ce fichier exporte un composant (`ThemeProvider`) et un hook (`useTheme`) : il viole réellement
+`only-export-components`, et un commentaire en tête l'en exempte. Vérifié empiriquement : retirer ce
+commentaire fait apparaître `error react(only-export-components)`. **Il est porteur, ne pas le
+supprimer.**
+
+Il désigne en revanche `react-refresh/only-export-components`, un plugin qui n'existe plus dans le
+projet. oxlint accepte cet alias, mais la référence est trompeuse après migration. Le nom canonique
+fonctionne tout aussi bien (vérifié) :
+
+```bash
+sed -i '' '1s|.*|/* eslint-disable react/only-export-components */|' \
+  src/components/theme-provider.tsx
+head -1 src/components/theme-provider.tsx
+```
+
+Attendu : `/* eslint-disable react/only-export-components */`.
+
+Puis revérifier que la suppression tient toujours :
+
+```bash
+bunx oxlint src/components/theme-provider.tsx; echo "exit=$?"
+```
+
+Attendu : aucune sortie, `exit=0`. Une erreur `react(only-export-components)` signifierait que le
+nom canonique n'est pas reconnu — rétablir alors l'ancien libellé.
+
+Ce fichier n'est couvert par aucun des trois overrides de `.oxlintrc.jsonc` : il n'est ni sous
+`src/components/ui/`, ni sous `src/routes/`, ni `main.tsx`. La suppression inline est donc le seul
+mécanisme qui l'exempte.
 
 - [ ] **Étape 4.8 : Vérifier que le diff ne touche aucune source**
 
