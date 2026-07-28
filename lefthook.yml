@@ -1,0 +1,16 @@
+# Hook de pré-commit : refuse un commit dont le code n'est pas conforme.
+# Installé automatiquement par le script `prepare` de package.json, donc
+# actif dès `bun install` sur un clone frais.
+#
+# Les deux jobs vérifient le dépôt entier plutôt que les fichiers indexés :
+# ils prennent 0,7 s à eux deux, et les scripts npm restent ainsi la source
+# unique de vérité sur le périmètre.
+#
+# Contournement ponctuel : git commit --no-verify
+pre-commit:
+  parallel: true
+  jobs:
+    - name: lint
+      run: bun run lint
+    - name: format
+      run: bun run format:check
