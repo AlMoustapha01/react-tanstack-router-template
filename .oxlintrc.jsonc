@@ -1,0 +1,43 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // `plugins` REMPLACE les plugins par défaut d'oxlint, il ne s'y ajoute
+  // pas : la liste doit être exhaustive. `unicorn`, `oxc` et `typescript`
+  // sont actifs par défaut et doivent donc être répétés ici ; `react` est
+  // désactivé par défaut et doit être ajouté.
+  "plugins": ["eslint", "typescript", "react", "unicorn", "oxc"],
+  "categories": { "correctness": "error" },
+  "env": { "browser": true },
+  "rules": {
+    // Équivalent de react-refresh/only-export-components. Chez oxlint cette
+    // règle est en catégorie `restriction` : elle n'est PAS activée par
+    // `correctness` et doit être déclarée ici, sinon les trois overrides
+    // ci-dessous désactiveraient une règle inexistante.
+    // `allowConstantExport` reproduit le preset `vite` du plugin ESLint.
+    "react/only-export-components": ["error", { "allowConstantExport": true }]
+  },
+  "ignorePatterns": [
+    "dist",
+    "public/mockServiceWorker.js",
+    "src/routeTree.gen.ts"
+  ],
+  "overrides": [
+    {
+      // Les composants shadcn exportent leurs variantes (cva) à côté du
+      // composant : c'est la convention du registre, pas un défaut.
+      "files": ["src/components/ui/**/*.tsx"],
+      "rules": { "react/only-export-components": "off" }
+    },
+    {
+      // `export const Route = createFileRoute(...)` n'est pas un export
+      // constant au sens de la règle : elle se déclencherait sur chaque route.
+      "files": ["src/routes/**/*.tsx"],
+      "rules": { "react/only-export-components": "off" }
+    },
+    {
+      // `main.tsx` ne fait aucun export : c'est le module d'entrée, jamais
+      // rechargé à chaud, donc la règle Fast Refresh n'y a aucune valeur.
+      "files": ["src/main.tsx"],
+      "rules": { "react/only-export-components": "off" }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import type { Post } from "../schemas/post.schema"
+import type { Post } from "../schemas/post.schema";
 
 export function PostCard({ post }: { post: Post }) {
   return (
@@ -9,5 +9,5 @@ export function PostCard({ post }: { post: Post }) {
       </p>
       <p className="text-muted-foreground">{post.body}</p>
     </article>
-  )
+  );
 }

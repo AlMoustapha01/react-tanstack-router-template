@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button";
 
 function HomePage() {
   return (
@@ -8,8 +8,8 @@ function HomePage() {
       <div>
         <h1 className="font-medium">Project ready!</h1>
         <p>
-          Typed routing, a query cache, mocked API handlers and tests are all
-          wired up. Sign in to reach the protected routes.
+          Typed routing, a query cache, mocked API handlers and tests are all wired up. Sign in to
+          reach the protected routes.
         </p>
         <Link to="/login" className={buttonVariants({ className: "mt-2" })}>
           Sign in
@@ -19,9 +19,9 @@ function HomePage() {
         (Press <kbd>d</kbd> to toggle dark mode)
       </div>
     </div>
-  )
+  );
 }
 
 export const Route = createFileRoute("/")({
   component: HomePage,
-})
+});

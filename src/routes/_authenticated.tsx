@@ -1,7 +1,7 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 function AuthenticatedLayout() {
-  return <Outlet />
+  return <Outlet />;
 }
 
 export const Route = createFileRoute("/_authenticated")({
@@ -10,8 +10,8 @@ export const Route = createFileRoute("/_authenticated")({
       throw redirect({
         to: "/login",
         search: { redirect: location.href },
-      })
+      });
     }
   },
   component: AuthenticatedLayout,
-})
+});
